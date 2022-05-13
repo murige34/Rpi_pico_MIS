@@ -4,7 +4,7 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 ### Opozorilo: Ne odgovarjam za nikakršno neposredno ali posredno škodo ali neprijetnosti, ki bi lahko nastale zaradi uporabe razvojne plošče ali objavljenih programov.
 
 # Navodila za uporabo
-### Če windows javlja napako, da je disk pokvarjen stori sledeče:
+### Če windows javlja napako, da je disk pokvarjen stori [sledeče](https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython/circuitpython):
 1. odklopi USB kabel iz računalnika
 2. tišči tipko na ploščici (BOOTSEL) in priklopi usb kabel na računalnik (prikaže se disk z imenom RPI-RP2)
 3. skopiraj 'flash_nuke.uf2' na 'RPI-RP2'
@@ -40,3 +40,14 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 > Npr. se želimo premakniti v mapo prenosi vnesemo **cd Downloads** ali celotno pot, do katere pridemo, če v  Raziskovalcu odpremo željeno mapo **cd C:\Users\urige\Downloads**
 5. Poženemo prevajalnik tako, da vnesemo **polno_ime_prenesenega_prevajalnika moj_program.py** in potrdimo vnos z Enter. V kolikor program ne javi napake smo uspešno prevedli naš program in nas že čaka v naši mapi z končnico .mpy
 > Npr. če imamo program test.py in smo prenesli prevajalnik iz primera pod točko 1 vnesemo: **mpy-cross.static-x64-windows-7.2.0-alpha.2.exe test.py**
+
+### Uporabne povezave:
+- Adafruit Getting Started tutorial: https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython
+- Zadnja verzija CircuitPythona: https://circuitpython.org/board/raspberry_pi_pico/
+- Raspberry Pi Pico datasheet: https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf
+- Raspberry Pi Pico C/C++ getting started: https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf
+- Priporočeni IDEji za začetnike:
+  - CircuitPython - Mu: https://codewith.mu/en/download
+  - MicroPython - Thonny: https://thonny.org/
+  - C/C++ - Arduino: https://www.arduino.cc/en/software
+  - C/C++ - Visual Studio Code: https://code.visualstudio.com/
