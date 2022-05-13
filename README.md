@@ -46,7 +46,7 @@ S pomo훾jo Raspberry Pi Pico razvojne plo큄훾e sem ustvaril pripomo훾ek za pomo�
 - Zadnja verzija CircuitPythona: https://circuitpython.org/board/raspberry_pi_pico/
 - Raspberry Pi Pico datasheet: https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf
 - Raspberry Pi Pico C/C++ getting started: https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf
-- Priporo훾eni IDEji za za훾etnike:
+- Priporo훾eni **IDE**ji za za훾etnike:
   - CircuitPython - Mu: https://codewith.mu/en/download
   - MicroPython - Thonny: https://thonny.org/
   - C/C++ - Arduino: https://www.arduino.cc/en/software
