@@ -1,11 +1,11 @@
 {
-	"Temp_val"   : "22,4",
-	"Temp_inst"  : "TDSME121A",
-	"Vlaga_val"  : "43,6",
-	"Vlaga_inst" : "HDSME96A",
+	"Temp_val"   : "",
+	"Temp_inst"  : "",
+	"Vlaga_val"  : "",
+	"Vlaga_inst" : "",
 	"Tlak_val"   : "/",
 	"Tlak_inst"  : "/",
-	"Datum"      : "4,3,22",
+	"Datum"      : "",
 	
 	"Opombe"     : "",
 	
