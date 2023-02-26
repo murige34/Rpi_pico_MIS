@@ -12,6 +12,8 @@
 	"Test_inst1" : "",
 	"Test_inst2" : "",
 	"Test_inst3" : "",
+	
+	"St_vrstic"  : "",
 
         "Etalon_val" : "",
 	"UUT_val"    : ""
