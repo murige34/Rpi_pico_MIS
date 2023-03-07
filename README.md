@@ -9,19 +9,19 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 2. tišči tipko na ploščici (BOOTSEL) in priklopi usb kabel na računalnik (prikaže se disk z imenom RPI-RP2)
 3. skopiraj 'flash_nuke.uf2' na 'RPI-RP2'
 4. počakaš, da se zresetira
-5. skopiraj 'adafruit-circuitpython-raspberry_pi_pico-en_US-7.2.0.uf2' na 'RPI-RP2', zadnjo verzijo si lahko preneseš s spletne strani: https://circuitpython.org/board/raspberry_pi_pico/
-6. počakaš, da se zresetira
+5. skopiraj 'adafruit-circuitpython-raspberry_pi_pico-en_US-8.0.3.uf2' na 'RPI-RP2', zadnjo verzijo si lahko preneseš s spletne strani: https://circuitpython.org/board/raspberry_pi_pico/
+6. počakaš, da se resetira
 7. pobrišeš code.py iz 'CIRCUITPY'
 8. skopiraj vsebino mape 'Skopiraj na CIRCUITPY' na 'CIRCUITPY'
 
 ### Uporaba v programu MIS:
-1. v beležnici odpri CIRCUITPY\Nastavitve.json
+1. v beležnici odpri CIRCUITPY\Nastavitve.json (pritisk na tipko T2)
 2. spremeniš vrednosti, ki jih želiš vnesti
 3. Shraniš z Ctrl+S in zapreš beležnico
 4. Počakaš, da zelena ledica na ploščici pomežikne
-5. V MISu se postaviš na polje za vnos temperature in pritisneš tipko za vnos
+5. V MISu odpreš delovni nalog, ki ga želiš izpolniti in pritisneš tipko za vnos T1
 
-#### Vnos datuma s tipko:
+#### Vnos datuma s tipko (ni v uporabi):
 1. pritisneš tipko za vnos datuma
 -. odpre se cmd (črno komandno okno)
 -. požene se skripta, ki shrani trenutni čas na 'CIRCUITPY'
@@ -30,7 +30,7 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 4. Da se uporabi ta vrednost, mora biti v Nastavitve.json: "Datum"     : "",
 
 
-### Razvil sem svojo knjižnico z končnico .py in bi ga rad prevedel v *.mpy:
+### Razvil sem svojo knjižnico z končnico .py in bi jo rad prevedel v *.mpy:
 1. S strani https://adafruit-circuit-python.s3.amazonaws.com/index.html?prefix=bin/mpy-cross/ preneseš križni prevajalnik (ang. cross compiler), glede na sistem, ki ga uporabljaš.
 > Npr. če uporabljaš PC z 64-bitnimi Windowsi in si na ploščico prenecel CircuitPython verzije 7.2.0 izbereš mpy-cross.static-x64-windows-7.2.0-alpha.2.exe
 2. V isto mapo, kamor si shranil prenesen program shraniš tudi svojo datoteko s končnico .py
@@ -44,6 +44,7 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 ### Uporabne povezave:
 - Adafruit Getting Started tutorial: https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython
 - Zadnja verzija CircuitPythona: https://circuitpython.org/board/raspberry_pi_pico/
+- Circuitpython REPL navodila: https://learn.adafruit.com/welcome-to-circuitpython/the-repl
 - Raspberry Pi Pico datasheet: https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf
 - Raspberry Pi Pico C/C++ getting started: https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf
 - Priporočeni **IDE**ji za začetnike:
