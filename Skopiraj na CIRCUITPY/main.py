@@ -1,12 +1,26 @@
+# CircuitPython looks for a code file on the board to run. 
+# There are four options: code.txt, code.py, main.txt and main.py.  <-- code.py = recommended
+# CircuitPython looks for those files, in that order, and then runs the first one it finds.
+
 import board
 import time
 import usb_hid
 import json
 import storage
+import os
+import usb_cdc
+import adafruit_datetime
 from digitalio import DigitalInOut, Direction, Pull
 from adafruit_hid.keyboard import Keyboard
 from keyboard_layout_win_slv import KeyboardLayout
 from keycode_win_slv import Keycode
+
+# initialize serial communication
+serial = usb_cdc.data
+serial.timeout = 0.005
+serial.reset_input_buffer()
+serial.reset_output_buffer()
+time.sleep(0.2)
 
 # settup I/O
 # initialize onboard LED as output
@@ -75,24 +89,18 @@ file = open("Nastavitve.json", "r")
 nastavitve = json.loads(file.read())
 file.close()
 
+print(nastavitve)
 
-if len(nastavitve["Datum"]) < 6:
+nastavitve_polja = ["Temp_val", "Temp_inst", "Vlaga_val", "Vlaga_inst", "Tlak_val", "Tlak_inst", "Datum", "Opombe", "Test_inst1", "Test_inst2", "Test_inst3", "Test_inst4", "St_vrstic", "Etalon_val", "UUT_val", "Komentar"]
+
+# lahko uporabiš čas zadnje spremembe datoteke Nastavitve.json
+if nastavitve["Datum"].replace(" ", "") == "d":
     try:
-        # read date from date.txt file
-        file = open("date.txt", "r")
-        a = file.read()
-        file.close()
-
-        if len(a.replace(" ", "")) >= 8:
-            a = a.replace(" ", "")
-            a = a.split("-")[0]
-
-        else:
-            a = ""
-
-        nastavitve["Datum"] = a
+        datum = adafruit_datetime.date.fromtimestamp(os.stat("Nastavitve.json")[-1])
+        nastavitve["Datum"] = str(datum.day) + "." + str(datum.month) + "." + str(datum.year)
     except:
         nastavitve["Datum"] = ""
+    
 
 
 # function to send N times key press
@@ -102,9 +110,29 @@ def keyboard_send_N(control_key, key, N=1):
         keyboard.release_all()
 
 
-# wrile led low/high
 while 1:
-    # define what happens when button_1 is pressed
+    # pricakovano podatke prilepiš iz beležnice in jih ne prepisuješ ročno (timeout)
+    if serial.in_waiting > 0:
+        time.sleep(0.02)
+        in_data = bytearray()
+        while serial.in_waiting > 0:
+            in_data += serial.read(1)     
+            
+        #in_data = in_data.decode('utf-8').replace(" ", "").replace("\n","").replace("\r","").replace("\t","")
+        in_data = in_data.decode('utf-8')
+        
+        if len(in_data) > 0:
+            if in_data.find('{') >= 0 and in_data.rfind('}') >= 0:
+                #to so nastavitve v .json obliki
+                in_data = in_data[in_data.find('{') : in_data.rfind('}')+1]
+                nastavitve = json.loads(in_data)
+                serial.write(bytearray("Nove .json nastavitve:\n\r"))
+                serial.write(bytearray(json.dumps(nastavitve) + "\n\r"))
+            else:
+                serial.write(bytearray("Preveri podatke!\n\r"))
+        del in_data
+    
+    # define what happens when button_1 is pressed: Vnos v MIS
     if button_1.value == 0:
         led.value = 0
         led_1.value = 1
@@ -127,14 +155,15 @@ while 1:
         kbd.write("\t")
         kbd.write(nastavitve["Datum"])
 
-        keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 6 + 4)
+        # keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 6 + 4)
+        kbd.write("\t")
 
         kbd.write(nastavitve["Opombe"])
 
 
         # Vnos testnih instrumentov
         if len(nastavitve["Test_inst1"].replace(" ", "")) > 0:
-            keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 13)
+            keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 16 + 7)
             # vneses 1. instrument
             kbd.write(nastavitve["Test_inst1"].replace(" ", ""))
             keyboard.press(Keycode.DOWN_ARROW)
@@ -150,7 +179,22 @@ while 1:
                     # vneses 3. instrument
                     kbd.write(nastavitve["Test_inst3"].replace(" ", ""))
                     keyboard.press(Keycode.DOWN_ARROW)
-                    keyboard.release_all()
+                    #keyboard.release_all()
+                    
+                    #keyboard.press(Keycode.TAB)
+                    keyboard_send_N(0, Keycode.TAB, 4)
+                    if len(nastavitve["Test_inst4"].replace(" ", "")) > 0:
+                        # vneses 4. instrument
+                        kbd.write(nastavitve["Test_inst4"].replace(" ", ""))
+                        keyboard.press(Keycode.DOWN_ARROW)
+                        keyboard.release_all()
+                    else:
+                        # pobrises 4. instrument
+                        keyboard.press(Keycode.BACKSPACE)
+                        keyboard.release_all()
+                    
+                    keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 4)
+                    
                 else:
                     # pobrises 3. instrument
                     keyboard.press(Keycode.BACKSPACE)
@@ -170,13 +214,14 @@ while 1:
 
             keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB)
 
-            keyboard_send_N(0, Keycode.TAB, 13)
-
-        keyboard_send_N(0, Keycode.TAB, 4 + 8)
+            keyboard_send_N(0, Keycode.TAB, 16 + 7)
+            
+        keyboard_send_N(0, Keycode.TAB, 8)
         keyboard_send_N(0, Keycode.DOWN_ARROW)
 
         Num_pts_Etalon = len(nastavitve["Etalon_val"].split())
         Num_pts_UUT = len(nastavitve["UUT_val"].split())
+        Num_pts_Komentar = len(nastavitve["Komentar"].split())
 
         Num_pts_Rocno = 0
         if len(nastavitve["St_vrstic"].replace(" ", "")) > 0 and len(nastavitve["St_vrstic"].replace(" ", "")) <= 2 :
@@ -186,10 +231,10 @@ while 1:
                 Num_pts_Rocno = 0
 
         # Je potrebno spremeniti stevilo vrstic?
-        Num_pts_max = max(Num_pts_Etalon, Num_pts_UUT, Num_pts_Rocno)
+        Num_pts_max = max(Num_pts_Etalon, Num_pts_UUT, Num_pts_Komentar, Num_pts_Rocno)
         if Num_pts_max > 0 and Num_pts_max < 100:
-            # Pobrises vse vrstice (pricakujes jih najvec 8)
-            for x in range(8):
+            # Pobrises vse vrstice (pricakujes jih najvec 10)
+            for x in range(10):
                 keyboard_send_N(0, Keycode.ALT)
                 keyboard_send_N(0, Keycode.RIGHT_ARROW)
                 keyboard_send_N(0, Keycode.ENTER)
@@ -202,6 +247,17 @@ while 1:
                 keyboard_send_N(0, Keycode.RIGHT_ARROW)
                 keyboard_send_N(0, Keycode.ENTER, 2)
 
+        if Num_pts_Komentar > 0:
+            # vnos komentarjev
+            keyboard_send_N(0, Keycode.RIGHT_ARROW, 4)
+            for x in nastavitve["Komentar"].split():
+                keyboard.press(0, Keycode.DOWN_ARROW)
+                kbd.write(x)
+
+            keyboard_send_N(0, Keycode.UP_ARROW, Num_pts_Komentar)
+            keyboard_send_N(0, Keycode.LEFT_ARROW, 4)
+        keyboard.release_all()
+        
         if Num_pts_Etalon > 0:
             # vnos vrednosti etalona
             for x in nastavitve["Etalon_val"].split():
@@ -230,7 +286,8 @@ while 1:
                 keyboard.press(0, Keycode.LEFT_ARROW)
         keyboard.release_all()
         led_1.value = 0
-
+        
+    # define what happens when button_2 is pressed: Odpiranje CIRCUITPY/Nastavitve.json - preko raziskovalca (manj zanesljivo a hitreje)
     if button_2.value == 0:
         led.value = 0
         led_2.value = 1
@@ -245,9 +302,12 @@ while 1:
         time.sleep(0.2)
         kbd.write("\n")
         led_2.value = 0
-
-    if 0:
+        
+    # define what happens when button_3 is pressed: Odpiranje CIRCUITPY/Nastavitve.json - preko cmd
+    if button_3.value == 0:
         led.value = 0
+        led_3.value = 1
+        
         keyboard.press(Keycode.WINDOWS, Keycode.R)
         keyboard.release_all()
 
@@ -261,9 +321,34 @@ while 1:
         kbd.write("%piusb%\n")
         time.sleep(0.1)
         kbd.write("Nastavitve.json\n")
+        
+        led_3.value = 0
 
-    if 0:
+    # define what happens when button_4 is pressed:
+    if button_4.value == 0:
         led.value = 0
+        led_4.value = 1
+        
+        led_4.value = 0
+        
+    # define what happens when button_5 is pressed:
+    if button_5.value == 0:
+        led.value = 0
+        led_5.value = 1
+        
+        led_5.value = 0
+        
+    # define what happens when button_6 is pressed:
+    if button_6.value == 0:
+        led.value = 0
+        led_6.value = 1
+        
+        led_6.value = 0
+        
+    # define what happens when button_7 is pressed:
+    if button_7.value == 0:
+        led.value = 0
+        led_7.value = 1
         keyboard.press(Keycode.WINDOWS, Keycode.R)
         keyboard.release_all()
 
@@ -285,6 +370,7 @@ while 1:
         time.sleep(0.5)
         kbd.write("exit\n")
         time.sleep(0.2)
+        led_7.value = 1
 
     led.value = 1
-    time.sleep(0.2)
+    #time.sleep(0.2)
