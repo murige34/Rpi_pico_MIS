@@ -5,16 +5,18 @@
 	"Vlaga_inst" : "",
 	"Tlak_val"   : "/",
 	"Tlak_inst"  : "/",
-	"Datum"      : "",
-	
+	"Datum"      : "d",
+
 	"Opombe"     : "",
 	
 	"Test_inst1" : "",
 	"Test_inst2" : "",
 	"Test_inst3" : "",
-	
+	"Test_inst4" : "",
+
 	"St_vrstic"  : "",
 
-        "Etalon_val" : "",
-	"UUT_val"    : ""
+    	"Etalon_val" : "",
+	"UUT_val"    : "",
+	"Komentar"   : ""
 }
