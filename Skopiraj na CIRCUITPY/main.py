@@ -16,6 +16,7 @@ from keyboard_layout_win_slv import KeyboardLayout
 from keycode_win_slv import Keycode
 
 # initialize serial communication
+COM_PORT = "COM4"
 serial = usb_cdc.data
 serial.timeout = 0.005
 serial.reset_input_buffer()
@@ -89,9 +90,6 @@ file = open("Nastavitve.json", "r")
 nastavitve = json.loads(file.read())
 file.close()
 
-print(nastavitve)
-
-nastavitve_polja = ["Temp_val", "Temp_inst", "Vlaga_val", "Vlaga_inst", "Tlak_val", "Tlak_inst", "Datum", "Opombe", "Test_inst1", "Test_inst2", "Test_inst3", "Test_inst4", "St_vrstic", "Etalon_val", "UUT_val", "Komentar"]
 
 # lahko uporabiš čas zadnje spremembe datoteke Nastavitve.json
 if nastavitve["Datum"].replace(" ", "") == "d":
@@ -100,8 +98,9 @@ if nastavitve["Datum"].replace(" ", "") == "d":
         nastavitve["Datum"] = str(datum.day) + "." + str(datum.month) + "." + str(datum.year)
     except:
         nastavitve["Datum"] = ""
-    
+        
 
+print("Nastavitve:\n" + str(nastavitve))
 
 # function to send N times key press
 def keyboard_send_N(control_key, key, N=1):
@@ -109,33 +108,63 @@ def keyboard_send_N(control_key, key, N=1):
         keyboard.press(control_key, key)
         keyboard.release_all()
 
+def read_serial():
+    global nastavitve
+    time.sleep(0.02)
+    in_data = bytearray()
+    while serial.in_waiting > 0:
+        in_data += serial.read(1)     
+        
+    in_data = in_data.decode('utf-8')
+    
+    if len(in_data) > 0:
+        if in_data.find('{') >= 0 and in_data.rfind('}') >= 0:
+            #to so nastavitve v .json obliki
+            in_data = in_data[in_data.find('{') : in_data.rfind('}')+1]
+            nastavitve = json.loads(in_data)
+            
+            print("Nove nastavitve:\n" + str(nastavitve))
+        elif in_data.find('[') >= 0 and in_data.rfind(']') >= 0:
+            # pričakovan datum oblike: [sre. 30. 07. 2025]
+            if in_data.count(".") == 3:
+                in_data = in_data[in_data.find('.') + 1 : in_data.rfind(']')].replace(" ", "")
+            else:
+                in_data = in_data[in_data.find('[') + 1 : in_data.rfind(']')].replace(" ", "")
+            
+            if nastavitve["Datum"].replace(" ", "") == "d":
+                nastavitve["Datum"] = in_data
+                print("Nov datum: " + in_data)
+        else:
+            serial.write(bytearray("Preveri podatke!\n\r"))
+    del in_data
 
 while 1:
     # pricakovano podatke prilepiš iz beležnice in jih ne prepisuješ ročno (timeout)
     if serial.in_waiting > 0:
-        time.sleep(0.02)
-        in_data = bytearray()
-        while serial.in_waiting > 0:
-            in_data += serial.read(1)     
-            
-        #in_data = in_data.decode('utf-8').replace(" ", "").replace("\n","").replace("\r","").replace("\t","")
-        in_data = in_data.decode('utf-8')
-        
-        if len(in_data) > 0:
-            if in_data.find('{') >= 0 and in_data.rfind('}') >= 0:
-                #to so nastavitve v .json obliki
-                in_data = in_data[in_data.find('{') : in_data.rfind('}')+1]
-                nastavitve = json.loads(in_data)
-                serial.write(bytearray("Nove .json nastavitve:\n\r"))
-                serial.write(bytearray(json.dumps(nastavitve) + "\n\r"))
-            else:
-                serial.write(bytearray("Preveri podatke!\n\r"))
-        del in_data
+        read_serial()
     
     # define what happens when button_1 is pressed: Vnos v MIS
     if button_1.value == 0:
         led.value = 0
         led_1.value = 1
+        
+        # kopiranje starih opomb preden odkleneš nalog za urejanje
+        if nastavitve["OpombeCopy"].replace(" ", "").lower() == "d":
+            keyboard_send_N(0, Keycode.ALT)
+            keyboard_send_N(0, Keycode.RIGHT_ARROW, 2)
+            #keyboard_send_N(0, Keycode.DOWN_ARROW)
+            keyboard_send_N(0, Keycode.ENTER)
+            kbd.write("p")
+            #time.sleep(0.4)
+            keyboard_send_N(Keycode.CONTROL, Keycode.C)
+            keyboard_send_N(Keycode.ALT, Keycode.F4)
+            #time.sleep(0.4)
+            keyboard_send_N(Keycode.CONTROL, Keycode.V)
+        else:
+            # opombe lahko pišeš že preden odkleneš DN za urejanje
+            kbd.write(nastavitve["Opombe"])
+        
+        
         # Spremembe / spremeni <- odklenes obrazec za urejanje
         keyboard_send_N(0, Keycode.ALT)
         keyboard_send_N(0, Keycode.ENTER, 2)
@@ -157,9 +186,6 @@ while 1:
 
         # keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 6 + 4)
         kbd.write("\t")
-
-        kbd.write(nastavitve["Opombe"])
-
 
         # Vnos testnih instrumentov
         if len(nastavitve["Test_inst1"].replace(" ", "")) > 0:
@@ -285,6 +311,7 @@ while 1:
                 keyboard_send_N(0, Keycode.UP_ARROW, Num_pts_UUT - 1)
                 keyboard.press(0, Keycode.LEFT_ARROW)
         keyboard.release_all()
+        
         led_1.value = 0
         
     # define what happens when button_2 is pressed: Odpiranje CIRCUITPY/Nastavitve.json - preko raziskovalca (manj zanesljivo a hitreje)
@@ -316,7 +343,7 @@ while 1:
         time.sleep(0.5)
         # poisces crko pogona z imenom "CIRCUITPY"
         kbd.write("for /f %D in ('wmic volume get DriveLetter^, Label ^| find \"CIRCUITPY\"') do set piusb=%D\n")
-        time.sleep(0.7)
+        time.sleep(0.9)
 
         kbd.write("%piusb%\n")
         time.sleep(0.1)
@@ -324,29 +351,100 @@ while 1:
         
         led_3.value = 0
 
-    # define what happens when button_4 is pressed:
+    # define what happens when button_4 is pressed: Create Nastavitve.json na računalniku
     if button_4.value == 0:
         led.value = 0
         led_4.value = 1
         
+        keyboard.press(Keycode.WINDOWS, Keycode.R)
+        keyboard.release_all()
+        
+        time.sleep(0.4)
+        kbd.write("notepad desktop/Nastavitve.json\n")
+        time.sleep(0.6)
+        kbd.write("\n\n")
+        keyboard.press(Keycode.CONTROL, Keycode.A)
+        keyboard.release_all()
+        keyboard.press(Keycode.DELETE)
+        keyboard.release_all()
+        
+        kbd.write("{\n")
+        kbd.write('\t"Temp_val"   : "",\n')
+        kbd.write('\t"Temp_inst"  : "",\n')
+        kbd.write('\t"Vlaga_val"  : "",\n')
+        kbd.write('\t"Vlaga_inst" : "",\n')
+        kbd.write('\t"Tlak_val"   : "/",\n')
+        kbd.write('\t"Tlak_inst"  : "/",\n')        
+        kbd.write('\t"Datum"      : "d",\n')        
+        kbd.write('\n')
+        kbd.write('\t"Opombe"     : "",\n')
+        kbd.write('\t"OpombeCopy" : "d",\n')
+        kbd.write('\n')
+        kbd.write('\t"Test_inst1" : "",\n')
+        kbd.write('\t"Test_inst2" : "",\n')
+        kbd.write('\t"Test_inst3" : "",\n')
+        kbd.write('\t"Test_inst4" : "",\n')
+        kbd.write('\n')
+        kbd.write('\t"St_vrstic"  : "",\n')
+        kbd.write('\n')
+        kbd.write('\t"Etalon_val" : "",\n')
+        kbd.write('\t"UUT_val"    : "",\n')
+        kbd.write('\t"Komentar"   : ""\n')
+        kbd.write("}")
+        
+        #keyboard.press(Keycode.CONTROL, Keycode.S)
+        #keyboard.release_all()
+        
         led_4.value = 0
         
-    # define what happens when button_5 is pressed:
+    # define what happens when button_5 is pressed: Odpre Nastavitve.json iz računalnika
     if button_5.value == 0:
         led.value = 0
         led_5.value = 1
         
+        keyboard.press(Keycode.WINDOWS, Keycode.R)
+        keyboard.release_all()
+        
+        time.sleep(0.3)
+        kbd.write("notepad desktop/Nastavitve.json\n")
+        
         led_5.value = 0
         
-    # define what happens when button_6 is pressed:
+    # define what happens when button_6 is pressed: Pošlje Nastavitve.json iz računalnika na ploščico preko COM porta
     if button_6.value == 0:
         led.value = 0
         led_6.value = 1
+        
+        print("Nastavitve:")
+        print(nastavitve)
+        
+        keyboard.press(Keycode.WINDOWS, Keycode.R)
+        keyboard.release_all()
+
+        time.sleep(0.3)
+        kbd.write("cmd\n")
+        time.sleep(0.5)
+        
+        # plink.exe je cmd interface od Puttyja (docs: https://documentation.help/putty/plink-usage.html )
+        # pošlje nastavitve
+        kbd.write("plink.exe -serial " + COM_PORT + " -sercfg 9600,8,n,1,N -batch < desktop/Nastavitve.json\n")
+        time.sleep(0.2)
+        read_serial()
+        keyboard.press(Keycode.CONTROL, Keycode.C)
+        keyboard.release_all()
+        # pošlje datum
+        kbd.write("echo [%date%] | plink.exe -serial " + COM_PORT + " -sercfg 9600,8,n,1,N -batch\n")
+        time.sleep(0.2)
+        read_serial()
+        keyboard.press(Keycode.CONTROL, Keycode.C)
+        keyboard.release_all()
+        kbd.write("exit\n")
         
         led_6.value = 0
         
     # define what happens when button_7 is pressed:
     if button_7.value == 0:
+        # write date to date.txt file in cmd
         led.value = 0
         led_7.value = 1
         keyboard.press(Keycode.WINDOWS, Keycode.R)
@@ -357,20 +455,11 @@ while 1:
         time.sleep(0.5)
         # poisces crko pogona z imenom "CIRCUITPY"
         kbd.write("for /f %D in ('wmic volume get DriveLetter^, Label ^| find \"CIRCUITPY\"') do set piusb=%D\n")
-        time.sleep(0.7)
+        time.sleep(0.5)
         # shranis datum (format: "pon. 07.03.2022 ") v date.txt
-        # kbd.write("cmd /c date/t > %piusb%\date.txt\n")
-        # time.sleep(0.5)
-
-        kbd.write("for /f \"tokens=2\" %i in ('date /t') do set mydate=%i\n")
-        time.sleep(0.5)
-        kbd.write("set mytime=%time%\n")
-        time.sleep(0.5)
-        kbd.write("echo %mydate%-%mytime% > %piusb%\date.txt\n")
-        time.sleep(0.5)
-        kbd.write("exit\n")
-        time.sleep(0.2)
+        kbd.write("cmd /c date/t > %piusb%\date.txt & exit\n")
+        
+        # Ta vrstica se nikoli ne izvrši, ker se po shranjevanju v katerokoli dateteko na Circuitpy ploščica resetira...
         led_7.value = 1
 
     led.value = 1
-    #time.sleep(0.2)

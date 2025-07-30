@@ -1,13 +1,14 @@
 {
-	"Temp_val"   : "",
-	"Temp_inst"  : "",
-	"Vlaga_val"  : "",
-	"Vlaga_inst" : "",
+	"Temp_val"   : "20,8",
+	"Temp_inst"  : "TDSME196A",
+	"Vlaga_val"  : "56,1",
+	"Vlaga_inst" : "HDSME154A",
 	"Tlak_val"   : "/",
 	"Tlak_inst"  : "/",
 	"Datum"      : "d",
 
 	"Opombe"     : "",
+	"OpombeCopy" : "d",
 	
 	"Test_inst1" : "",
 	"Test_inst2" : "",
