@@ -1,8 +1,8 @@
 {
-	"Temp_val"   : "20,8",
-	"Temp_inst"  : "TDSME196A",
-	"Vlaga_val"  : "56,1",
-	"Vlaga_inst" : "HDSME154A",
+	"Temp_val"   : "",
+	"Temp_inst"  : "",
+	"Vlaga_val"  : "",
+	"Vlaga_inst" : "",
 	"Tlak_val"   : "/",
 	"Tlak_inst"  : "/",
 	"Datum"      : "d",
