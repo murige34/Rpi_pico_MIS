@@ -14,12 +14,21 @@ S pomočjo Raspberry Pi Pico razvojne plošče sem ustvaril pripomoček za pomo�
 7. pobrišeš code.py iz 'CIRCUITPY'
 8. skopiraj vsebino mape 'Skopiraj na CIRCUITPY' na 'CIRCUITPY'
 
-### Uporaba v programu MIS:
-1. v beležnici odpri CIRCUITPY\Nastavitve.json (pritisk na tipko T2)
+### Uporaba v programu MIS (pri odklenjenem USB portu):
+1. v beležnici odpri CIRCUITPY\Nastavitve.json (pritisk na tipko T2 ali T3)
 2. spremeniš vrednosti, ki jih želiš vnesti
 3. Shraniš z Ctrl+S in zapreš beležnico
 4. Počakaš, da zelena ledica na ploščici pomežikne
 5. V MISu odpreš delovni nalog, ki ga želiš izpolniti in pritisneš tipko za vnos T1
+
+### Uporaba v programu MIS (Zaklenjen USB port + Putty):
+1. v beležnici odpri Namizje\Nastavitve.json (pritisk na tipko T5)
+2. v kolikor datoteke (iz točke 1) še nimaš jo generiraš s pritiskom na T4
+3. spremeniš vrednosti, ki jih želiš vnesti
+4. Shraniš z Ctrl+S in zapreš beležnico
+5. Podatke pošlješ na ploščico s pritiskom na tipko T6 (podatki se izgubijo ob izgubi napajanja)
+6. Počakaš, da se terminalsko okno zapre
+7. V MISu odpreš delovni nalog, ki ga želiš izpolniti in pritisneš tipko za vnos T1
 
 #### Vnos datuma s tipko (ni v uporabi):
 1. pritisneš tipko za vnos datuma
