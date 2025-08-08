@@ -1,3 +1,8 @@
+# Author: Martin Urigelj
+# Created: 08.08.2025
+# Version: v1.0.4
+# Github: https://github.com/murige34/Rpi_pico_MIS
+
 # CircuitPython looks for a code file on the board to run. 
 # There are four options: code.txt, code.py, main.txt and main.py.  <-- code.py = recommended
 # CircuitPython looks for those files, in that order, and then runs the first one it finds.
@@ -114,8 +119,9 @@ def read_serial():
     in_data = bytearray()
     while serial.in_waiting > 0:
         in_data += serial.read(1)     
-        
-    in_data = in_data.decode('utf-8')
+
+    #print(in_data)
+    in_data = in_data.decode('windows-1250')
     
     if len(in_data) > 0:
         if in_data.find('{') >= 0 and in_data.rfind('}') >= 0:
@@ -125,7 +131,7 @@ def read_serial():
             
             print("Nove nastavitve:\n" + str(nastavitve))
         elif in_data.find('[') >= 0 and in_data.rfind(']') >= 0:
-            # pričakovan datum oblike: [sre. 30. 07. 2025]
+            # pričakovan datum oblike: [ 30. 07. 2025]
             if in_data.count(".") == 3:
                 in_data = in_data[in_data.find('.') + 1 : in_data.rfind(']')].replace(" ", "")
             else:
@@ -152,22 +158,38 @@ while 1:
         if nastavitve["OpombeCopy"].replace(" ", "").lower() == "d":
             keyboard_send_N(0, Keycode.ALT)
             keyboard_send_N(0, Keycode.RIGHT_ARROW, 2)
-            #keyboard_send_N(0, Keycode.DOWN_ARROW)
             keyboard_send_N(0, Keycode.ENTER)
             kbd.write("p")
-            #time.sleep(0.4)
             keyboard_send_N(Keycode.CONTROL, Keycode.C)
             keyboard_send_N(Keycode.ALT, Keycode.F4)
-            #time.sleep(0.4)
             keyboard_send_N(Keycode.CONTROL, Keycode.V)
         else:
             # opombe lahko pišeš že preden odkleneš DN za urejanje
-            kbd.write(nastavitve["Opombe"])
-        
+            kbd.write(nastavitve["Opombe"])   
         
         # Spremembe / spremeni <- odklenes obrazec za urejanje
         keyboard_send_N(0, Keycode.ALT)
         keyboard_send_N(0, Keycode.ENTER, 2)
+        
+        # definicija spremnih dokumentov v kodi, ker je težava ubežnih sekvenc (npr. \t \n, prepovedani \c) v poti datoteke
+        # rešitev: raw string r"..ime datoteke s potjo.." (lahko bi podvajal \ -> \\ samo to je za uporabnika neuporabno...)
+        Spremni_1 = r""
+        Spremni_2 = r""
+        
+        # dodajanje spremnih dokumentov
+        if len(Spremni_1.replace(" ", "")) > 0:
+            keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 8)
+            keyboard_send_N(0, Keycode.ENTER)
+            time.sleep(0.1)
+            kbd.write(Spremni_1)
+            keyboard_send_N(0, Keycode.ENTER)
+            
+            if len(Spremni_2.replace(" ", "")) > 0:
+                keyboard_send_N(0, Keycode.ENTER)
+                kbd.write(Spremni_2)
+                keyboard_send_N(0, Keycode.ENTER)
+            
+            keyboard_send_N(0, Keycode.TAB, 8)
 
         # Vnos klimatskih pogojev
         kbd.write(nastavitve["Temp_val"])
@@ -192,62 +214,84 @@ while 1:
             keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 16 + 7)
             # vneses 1. instrument
             kbd.write(nastavitve["Test_inst1"].replace(" ", ""))
-            keyboard.press(Keycode.DOWN_ARROW)
+            keyboard_send_N(0, Keycode.DOWN_ARROW)
 
-            keyboard.press(Keycode.TAB)
+            keyboard_send_N(0, Keycode.TAB)
             if len(nastavitve["Test_inst2"].replace(" ", "")) > 0:
                 # vneses 2. instrument
                 kbd.write(nastavitve["Test_inst2"].replace(" ", ""))
-                keyboard.press(Keycode.DOWN_ARROW)
+                keyboard_send_N(0, Keycode.DOWN_ARROW)
 
-                keyboard.press(Keycode.TAB)
+                keyboard_send_N(0, Keycode.TAB)
                 if len(nastavitve["Test_inst3"].replace(" ", "")) > 0:
                     # vneses 3. instrument
                     kbd.write(nastavitve["Test_inst3"].replace(" ", ""))
-                    keyboard.press(Keycode.DOWN_ARROW)
-                    #keyboard.release_all()
+                    keyboard_send_N(0, Keycode.DOWN_ARROW)
                     
                     #keyboard.press(Keycode.TAB)
                     keyboard_send_N(0, Keycode.TAB, 4)
                     if len(nastavitve["Test_inst4"].replace(" ", "")) > 0:
                         # vneses 4. instrument
                         kbd.write(nastavitve["Test_inst4"].replace(" ", ""))
-                        keyboard.press(Keycode.DOWN_ARROW)
-                        keyboard.release_all()
+                        keyboard_send_N(0, Keycode.DOWN_ARROW)
                     else:
                         # pobrises 4. instrument
-                        keyboard.press(Keycode.BACKSPACE)
-                        keyboard.release_all()
+                        keyboard_send_N(0, Keycode.BACKSPACE)
                     
                     keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB, 4)
                     
                 else:
                     # pobrises 3. instrument
-                    keyboard.press(Keycode.BACKSPACE)
-                    keyboard.release_all()
-                keyboard.press(Keycode.LEFT_SHIFT, Keycode.TAB)
-                keyboard.release_all()
+                    keyboard_send_N(0, Keycode.BACKSPACE)
+                keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB)
 
             else:
                 # pobrises 2. in 3. instrument
-                keyboard.press(Keycode.BACKSPACE)
-                keyboard.release_all()
-                keyboard.press(Keycode.TAB)
-                keyboard.press(Keycode.BACKSPACE)
-                keyboard.release_all()
-                keyboard.press(Keycode.LEFT_SHIFT, Keycode.TAB)
-                keyboard.release_all()
+                keyboard_send_N(0, Keycode.BACKSPACE)
+                keyboard_send_N(0, Keycode.TAB)
+                keyboard_send_N(0, Keycode.BACKSPACE)
+                keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB)
 
-            keyboard_send_N(Keycode.LEFT_SHIFT, Keycode.TAB)
-
-            keyboard_send_N(0, Keycode.TAB, 16 + 7)
+            keyboard_send_N(0, Keycode.TAB, 16 + 6)
             
-        keyboard_send_N(0, Keycode.TAB, 8)
+        # Vnos SOPov:
+        if len(nastavitve["SOP_1"].replace(" ", "")) > 0:
+            kbd.write("\t")
+            kbd.write(nastavitve["SOP_1"])
+            keyboard_send_N(0, Keycode.DOWN_ARROW)
+            kbd.write("\t")
+            
+            if len(nastavitve["SOP_2"].replace(" ", "")) > 0:
+                kbd.write(nastavitve["SOP_2"])
+                keyboard_send_N(0, Keycode.DOWN_ARROW)
+                keyboard_send_N(0, Keycode.TAB, 3)
+                if len(nastavitve["SOP_3"].replace(" ", "")) > 0:
+                    kbd.write(nastavitve["SOP_3"])
+                    keyboard_send_N(0, Keycode.DOWN_ARROW)
+                else:
+                    # pobrises 3. SOP
+                    keyboard_send_N(0, Keycode.BACKSPACE)
+            else:
+                # pobrises 2. in 3. SOP
+                keyboard_send_N(0, Keycode.BACKSPACE)
+                keyboard_send_N(0, Keycode.TAB, 3)
+                keyboard_send_N(0, Keycode.BACKSPACE)
+        else:
+            keyboard_send_N(0, Keycode.TAB, 5)
+        
+        keyboard_send_N(0, Keycode.TAB, 3)
         keyboard_send_N(0, Keycode.DOWN_ARROW)
 
         Num_pts_Etalon = len(nastavitve["Etalon_val"].split())
         Num_pts_UUT = len(nastavitve["UUT_val"].split())
-        Num_pts_Komentar = len(nastavitve["Komentar"].split())
+        # vrstice komentarja default ločene z ";" ali kadar vsebujejo tekst, delujejo tudi številke ločene samo z presledki
+        if ";" in nastavitve["Komentar"] or any(c.isalpha() for c in nastavitve["Komentar"]):
+            Num_pts_Komentar = len(nastavitve["Komentar"].split(";"))
+            Komentar_split = nastavitve["Komentar"].split(";")
+        else:
+            Num_pts_Komentar = len(nastavitve["Komentar"].split())
+            Komentar_split = nastavitve["Komentar"].split()
+
 
         Num_pts_Rocno = 0
         if len(nastavitve["St_vrstic"].replace(" ", "")) > 0 and len(nastavitve["St_vrstic"].replace(" ", "")) <= 2 :
@@ -276,25 +320,23 @@ while 1:
         if Num_pts_Komentar > 0:
             # vnos komentarjev
             keyboard_send_N(0, Keycode.RIGHT_ARROW, 4)
-            for x in nastavitve["Komentar"].split():
-                keyboard.press(0, Keycode.DOWN_ARROW)
+            for x in Komentar_split:
+                keyboard_send_N(0, Keycode.DOWN_ARROW)
                 kbd.write(x)
 
             keyboard_send_N(0, Keycode.UP_ARROW, Num_pts_Komentar)
             keyboard_send_N(0, Keycode.LEFT_ARROW, 4)
-        keyboard.release_all()
         
         if Num_pts_Etalon > 0:
             # vnos vrednosti etalona
             for x in nastavitve["Etalon_val"].split():
-                keyboard.press(0, Keycode.DOWN_ARROW)
+                keyboard_send_N(0, Keycode.DOWN_ARROW)
                 kbd.write(x)
 
             keyboard_send_N(0, Keycode.UP_ARROW, Num_pts_Etalon - 1)
-            keyboard.press(0, Keycode.RIGHT_ARROW)
+            keyboard_send_N(0, Keycode.RIGHT_ARROW)
         else:
-            keyboard.press(0, Keycode.DOWN_ARROW)
-        keyboard.release_all()
+            keyboard_send_N(0, Keycode.DOWN_ARROW)
 
         if Num_pts_UUT > 0:
             if Num_pts_Etalon <= 0:
@@ -302,15 +344,14 @@ while 1:
             keyboard_send_N(0, Keycode.UP_ARROW)
             # vnos vrednosti merjenca
             for x in nastavitve["UUT_val"].split():
-                keyboard.press(0, Keycode.DOWN_ARROW)
+                keyboard_send_N(0, Keycode.DOWN_ARROW)
                 kbd.write(x)
 
             if Num_pts_Etalon > 0:
-                keyboard.press(0, Keycode.ENTER)
+                keyboard_send_N(0, Keycode.ENTER)
             else:
                 keyboard_send_N(0, Keycode.UP_ARROW, Num_pts_UUT - 1)
-                keyboard.press(0, Keycode.LEFT_ARROW)
-        keyboard.release_all()
+                keyboard_send_N(0, Keycode.LEFT_ARROW)
         
         led_1.value = 0
         
@@ -318,8 +359,7 @@ while 1:
     if button_2.value == 0:
         led.value = 0
         led_2.value = 1
-        keyboard.press(Keycode.WINDOWS, Keycode.E)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.E)
         time.sleep(1.2)
         kbd.write("c")
         time.sleep(0.2)
@@ -335,8 +375,7 @@ while 1:
         led.value = 0
         led_3.value = 1
         
-        keyboard.press(Keycode.WINDOWS, Keycode.R)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.R)
 
         time.sleep(0.3)
         kbd.write("cmd\n")
@@ -356,17 +395,14 @@ while 1:
         led.value = 0
         led_4.value = 1
         
-        keyboard.press(Keycode.WINDOWS, Keycode.R)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.R)
         
         time.sleep(0.4)
         kbd.write("notepad desktop/Nastavitve.json\n")
         time.sleep(0.6)
         kbd.write("\n\n")
-        keyboard.press(Keycode.CONTROL, Keycode.A)
-        keyboard.release_all()
-        keyboard.press(Keycode.DELETE)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.CONTROL, Keycode.A)
+        keyboard_send_N(0, Keycode.DELETE)
         
         kbd.write("{\n")
         kbd.write('\t"Temp_val"   : "",\n')
@@ -389,11 +425,14 @@ while 1:
         kbd.write('\n')
         kbd.write('\t"Etalon_val" : "",\n')
         kbd.write('\t"UUT_val"    : "",\n')
-        kbd.write('\t"Komentar"   : ""\n')
+        kbd.write('\t"Komentar"   : "",\n')
+        kbd.write('\n')
+        kbd.write('\t"SOP_1"      : "",\n')
+        kbd.write('\t"SOP_2"      : "",\n')
+        kbd.write('\t"SOP_3"      : ""\n')
         kbd.write("}")
         
-        #keyboard.press(Keycode.CONTROL, Keycode.S)
-        #keyboard.release_all()
+        #keyboard_send_N(Keycode.CONTROL, Keycode.S)
         
         led_4.value = 0
         
@@ -402,8 +441,7 @@ while 1:
         led.value = 0
         led_5.value = 1
         
-        keyboard.press(Keycode.WINDOWS, Keycode.R)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.R)
         
         time.sleep(0.3)
         kbd.write("notepad desktop/Nastavitve.json\n")
@@ -418,8 +456,7 @@ while 1:
         print("Nastavitve:")
         print(nastavitve)
         
-        keyboard.press(Keycode.WINDOWS, Keycode.R)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.R)
 
         time.sleep(0.3)
         kbd.write("cmd\n")
@@ -430,14 +467,12 @@ while 1:
         kbd.write("plink.exe -serial " + COM_PORT + " -sercfg 9600,8,n,1,N -batch < desktop/Nastavitve.json\n")
         time.sleep(0.2)
         read_serial()
-        keyboard.press(Keycode.CONTROL, Keycode.C)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.CONTROL, Keycode.C)
         # pošlje datum
-        kbd.write("echo [%date%] | plink.exe -serial " + COM_PORT + " -sercfg 9600,8,n,1,N -batch\n")
+        kbd.write("echo [%date:~4,20%] | plink.exe -serial " + COM_PORT + " -sercfg 9600,8,n,1,N -batch\n")
         time.sleep(0.2)
         read_serial()
-        keyboard.press(Keycode.CONTROL, Keycode.C)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.CONTROL, Keycode.C)
         kbd.write("exit\n")
         
         led_6.value = 0
@@ -447,8 +482,7 @@ while 1:
         # write date to date.txt file in cmd
         led.value = 0
         led_7.value = 1
-        keyboard.press(Keycode.WINDOWS, Keycode.R)
-        keyboard.release_all()
+        keyboard_send_N(Keycode.WINDOWS, Keycode.R)
 
         time.sleep(0.3)
         kbd.write("cmd\n")
